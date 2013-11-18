@@ -32,20 +32,20 @@ def process_lines(lines):
 		if len(tokens) < 1:
 			continue
 		if 'load' in tokens:
-			loaddata = '{},{},{}\n'.format(date,time, ','.join(tokens[9:]))
+			loaddata = '{},{},{}\n'.format(date,time, ''.join(tokens[9:]))
 			continue
 		if 'Mem:' in tokens:
-			nexttokens = lines[index+1].split()
-			memdata = '{},{},{},{}\n'.format(date,time,','.join(tokens[1:]), ','.join(nexttokens[1:]))
-			memdata += ',{},{},{},{},{},{}'.format(nexttokens[1], nexttokens[2], 
+			nexttokens = lines[index+1].split();
+			memdata = '{},{},{},{}'.format(date,time,','.join(tokens[1:]), ','.join(nexttokens[2:]))
+			memdata += ',{},{},{},{}\n'.format(
 				float(tokens[2])/float(tokens[1]) * 100,
 				float(tokens[3])/float(tokens[1]) * 100,
-				float(nexttokens[1])/float(tokens[1]) * 100,
-				float(nexttokens[2])/float(tokens[1]) * 100)
+				float(nexttokens[2])/float(tokens[1]) * 100,
+				float(nexttokens[3])/float(tokens[1]) * 100)
 			continue
 		if 'avg-cpu:' in tokens:
 			nexttokens = lines[index+1].split()
-			cpudata = '{},{},{}'.format(data,time,','.join(nexttokens))
+			cpudata = '{},{},{}\n'.format(date,time,','.join(nexttokens))
 
 	return (cpudata, memdata, loaddata)
 
@@ -61,25 +61,21 @@ def main():
 		directory = os.path.dirname(os.path.realpath(__file__))
 
 	for root, sub_folders, files in os.walk(directory):
-		for filename in files:
+		for filename in [name for name in files if 'resources' in name]:
 			file_path = os.path.join(root, filename)
-
+			print 'Processing', file_path
 			with open(file_path, 'r') as f:
 				lines = f.read().splitlines()
 				cpuresults, memresults, loadresults = process_lines(lines)
 				cpudata = cpudata + cpuresults
 				memdata = memdata + memresults
 				loaddata = loaddata + loadresults
-	#with open(os.path.join(directory, 'cpu.csv'), 'w') as f:
-	#	f.write(cpudata)
-	#with open(os.path.join(directory, 'mem.csv'), 'w') as f:
-	#	f.write(memdata)
-	#with open(os.path.join(directory, 'load.csv'), 'w') as f:
-	#	f.write(loaddata)
-
-	print cpudata
-	print memdata
-	print loaddata
+	with open(os.path.join(directory, 'cpu.csv'), 'w') as f:
+		f.write(cpudata)
+	with open(os.path.join(directory, 'mem.csv'), 'w') as f:
+		f.write(memdata)
+	with open(os.path.join(directory, 'load.csv'), 'w') as f:
+		f.write(loaddata)
 
 if __name__ == '__main__':
 	main()
